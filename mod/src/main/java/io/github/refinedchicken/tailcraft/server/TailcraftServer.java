@@ -1,6 +1,7 @@
 package io.github.refinedchicken.tailcraft.server;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.context.CommandContext;
 import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -64,8 +65,9 @@ public final class TailcraftServer implements DedicatedServerModInitializer {
     }
 
     private static void register(CommandDispatcher<ServerCommandSource> dispatcher, ServerHost host) {
-        dispatcher.register(literal("tailcraft")
+        var tailcraft = dispatcher.register(literal("tailcraft")
                 .requires(source -> source.hasPermissionLevel(4))
+                .executes(TailcraftServer::usage)
                 .then(literal("address").executes(ctx -> {
                     String address = host.address();
                     if (address == null) {
@@ -97,6 +99,20 @@ public final class TailcraftServer implements DedicatedServerModInitializer {
                             }));
                             return 1;
                         }))));
+        // /tc is a short alias: it forwards to the same subcommands.
+        dispatcher.register(literal("tc")
+                .requires(source -> source.hasPermissionLevel(4))
+                .executes(TailcraftServer::usage)
+                .redirect(tailcraft));
+    }
+
+    // Bare /tailcraft or /tc: list the subcommands instead of vanilla's "incomplete command" error.
+    private static int usage(CommandContext<ServerCommandSource> ctx) {
+        ctx.getSource().sendFeedback(() -> Text.literal("""
+                Tailcraft commands (/tc works as a short form):
+                  /tailcraft address - show this server's Tailcraft address
+                  /tailcraft regenerate - replace it with a new address"""), false);
+        return 1;
     }
 
     private static Text addressText(String address) {

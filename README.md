@@ -38,7 +38,8 @@ Things to know:
   keep the address when you move the server.
 - To turn Tailcraft off, set `"enabled": false` in `config/tailcraft.json`.
 
-Commands (op level 4 or the console):
+Commands (op level 4 or the console). `/tc` is a short alias, so
+`/tc address` and `/tc regenerate confirm` work too:
 
 | Command | What it does |
 | --- | --- |
@@ -108,24 +109,3 @@ Helper tests: `cd helper && CGO_ENABLED=0 go test ./...`
   sharing stops.
 - `TAILCRAFT_HELPER=/path/to/tailcraft-helper` uses a locally built helper
   (development environment only).
-
-## Releasing
-
-Push a version tag:
-
-```sh
-git tag v0.1.0
-git push origin v0.1.0
-```
-
-GitHub Actions (`.github/workflows/build.yml`) builds the helpers and the jar,
-runs the tests, and publishes a GitHub Release with the jar attached. Every
-push and pull request runs the same build and uploads the jar as a workflow
-artifact.
-
-The helper binaries are not code-signed.
-
-## License
-
-BSD-3-Clause, as in the upstream project. Tailcat and Tailscale are
-BSD-3-Clause licensed. Minecraft is subject to Mojang's terms.
