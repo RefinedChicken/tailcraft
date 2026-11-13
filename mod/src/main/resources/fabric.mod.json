@@ -1,14 +1,19 @@
 {
   "schemaVersion": 1,
-  "id": "tailcat-for-minecraft",
+  "id": "tailcraft",
   "version": "${version}",
-  "name": "Tailcat for Minecraft",
-  "description": "Share Minecraft worlds through Tailcat's userspace WireGuard transport.",
-  "authors": ["Tailscale"],
+  "name": "Tailcraft",
+  "description": "Play Minecraft with friends without port forwarding. Servers get a permanent Tailcat address; players paste it into the normal server address box.",
+  "authors": ["RefinedChicken"],
+  "contributors": ["Based on Tailcat for Minecraft by Tailscale"],
+  "contact": { "sources": "https://github.com/RefinedChicken/tailcraft", "issues": "https://github.com/RefinedChicken/tailcraft/issues" },
   "license": "BSD-3-Clause",
-  "environment": "client",
-  "entrypoints": { "client": ["com.tailscale.mclink.McLinkClient"] },
-  "mixins": ["mclink.mixins.json"],
+  "environment": "*",
+  "entrypoints": {
+    "client": ["io.github.refinedchicken.tailcraft.client.TailcraftClient"],
+    "server": ["io.github.refinedchicken.tailcraft.server.TailcraftServer"]
+  },
+  "mixins": ["tailcraft.mixins.json"],
   "depends": {
     "fabricloader": ">=0.16.10",
     "minecraft": "~1.21.1",
