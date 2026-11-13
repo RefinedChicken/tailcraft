@@ -1,0 +1,9 @@
+{
+  "tailcraft.lan.toggle": "Tailcraft",
+  "tailcraft.lan.tooltip": "Also share this world with a temporary Tailcraft address, so friends outside your network can join without port forwarding. They need Tailcraft installed. The address stops working when you close the world.",
+  "tailcraft.lan.ready": "Tailcraft address: %s",
+  "tailcraft.lan.copy": "[Copy]",
+  "tailcraft.lan.copy_hover": "Copy the Tailcraft address. Anyone with it can join this world while it's open.",
+  "tailcraft.lan.failed": "Tailcraft sharing failed",
+  "tailcraft.connect.failed": "Tailcraft connection failed"
+}

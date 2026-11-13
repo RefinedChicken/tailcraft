@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "package": "io.github.refinedchicken.tailcraft.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "AddressFieldLengthMixin",
+    "AllowedAddressResolverMixin",
+    "IntegratedServerMixin",
+    "OpenToLanScreenMixin",
+    "ServerAddressAccessor",
+    "ServerAddressMixin"
+  ],
+  "injectors": { "defaultRequire": 1 }
+}

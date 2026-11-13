@@ -1,80 +1,131 @@
-# Tailcat for Minecraft
+# Tailcraft
 
-> [!WARNING]
-> This is a quick, mostly AI-generated prototype demonstrating one way to use
-> Tailcat. It is not an officially supported Tailscale product, and Tailscale
-> has no plans to distribute it. This repository is provided for demonstration
-> and amusement only.
+Play Minecraft with friends without port forwarding and without installing
+Tailscale. Tailcraft is a Fabric mod for Minecraft 1.21.1 that connects
+players to a server through [Tailcat](https://github.com/tailscale/tailcat):
+userspace WireGuard, direct NAT traversal when possible, and Tailscale's DERP
+relays when not.
 
-A Fabric 1.21.1 client mod that shares an integrated Minecraft world through
-[Tailcat](https://github.com/tailscale/tailcat)'s
-standard userspace WireGuard, magicsock direct NAT traversal, and DERP fallback.
-It creates no TUN interface and requires no Tailscale installation. Java owns
-Minecraft UI/process lifecycle; the bundled Go helper owns all networking and
-encryption.
+The same jar goes on the server and on every player's client.
 
-## Demo
+> [!NOTE]
+> Tailcraft is a community fork of Tailscale's
+> [Tailcat for Minecraft](https://github.com/tailscale/tailcat-for-minecraft)
+> prototype. It is not made, supported or endorsed by Tailscale.
 
-https://github.com/user-attachments/assets/18cb9999-c6bc-482b-b4e8-5d37423a6259
+## Running a server
 
-## Build
+1. Put `tailcraft-<version>.jar` and [Fabric API](https://modrinth.com/mod/fabric-api)
+   in the server's `mods/` folder.
+2. Start the server. When it's ready, the console prints a Tailcraft address
+   (a long string starting with `tc`). It is also saved in
+   `config/tailcraft.json`.
+3. Send that address to your players.
 
-Requirements are JDK 21, `curl`, and `tar`. The helper uses the public
-[Tailcat Go module](https://github.com/tailscale/tailcat). The native build
-script downloads the required Tailscale Go toolchain:
+The address stays the same across restarts. The server's normal port keeps
+working as before, for LAN players and troubleshooting.
+
+Things to know:
+
+- **The address is like a public IP.** Anyone who has it can reach your
+  server. Minecraft's own protections still apply: online-mode login,
+  whitelist, bans and ops.
+- **Tailcraft players show up as `127.0.0.1`** in the server log, because the
+  helper connects to the server locally. IP bans don't work for them; ban by
+  name instead.
+- **`config/tailcraft/server.key` is the server's identity.** Keep it private.
+  Anyone who copies it can impersonate your server. Back it up if you want to
+  keep the address when you move the server.
+- To turn Tailcraft off, set `"enabled": false` in `config/tailcraft.json`.
+
+Commands (op level 4 or the console):
+
+| Command | What it does |
+| --- | --- |
+| `/tailcraft address` | Shows the address again (click to copy in game). |
+| `/tailcraft regenerate confirm` | Replaces the address. The old one stops working and players have to update their saved server. |
+
+If the network helper loses its connection, Tailcraft logs a warning and
+retries automatically. The server keeps running either way.
+
+## Joining a server
+
+1. Install Tailcraft and Fabric API.
+2. In **Multiplayer**, use **Add Server** or **Direct Connection** and paste
+   the `tc...` address into the normal *Server Address* box.
+
+That's it. The server shows its MOTD and player count, and you join like any
+other server.
+
+## Sharing a singleplayer world
+
+1. Pause, then click **Open to LAN**.
+2. Switch **Tailcraft** to **ON**, then click **Start LAN World**.
+3. Click **[Copy]** in the chat message and send the address to your friends.
+
+Each time a world is opened this way, it gets a new temporary address. The
+address stops working when you close the world.
+
+## How it works
+
+Each jar contains a small Go helper (`helper/`), built for Windows, macOS and
+Linux on x86-64 and ARM64. The mod extracts the helper for the current platform
+into `.tailcraft/` in the game directory, verifies its SHA-256, and runs it as
+a child process:
+
+- **Hosting:** the helper runs a Tailcat server that accepts only virtual TCP
+  port 25565 and forwards it to the Minecraft server's local port.
+- **Joining:** when you connect to (or ping) a `tc...` address, the mod starts
+  a helper that listens on `127.0.0.1:<random port>`. Minecraft connects there,
+  and the helper tunnels the connection to the server.
+
+The address contains the server's public keys, a WireGuard pre-shared key and
+a relay region ID. The dedicated server pins its region on first start so the
+address never changes.
+
+## Building
+
+Requirements: JDK 21, `curl`, `tar` and `jq`. The script downloads and
+verifies the pinned Go toolchain if a matching `go` isn't already on `PATH`.
 
 ```sh
-scripts/build-natives.sh
-./gradlew :mod:build
+scripts/build-natives.sh   # builds the helpers into mod/src/main/resources/assets/tailcraft/native/
+./gradlew :mod:build       # jar is written to mod/build/libs/
 ```
 
-The normal JAR is written to `mod/build/libs/`. For Java-only development,
-set `MCLINK_HELPER` to a locally built helper path. The native build produces
-and checksums Windows, macOS (Intel and Apple Silicon), and Linux helpers.
+Helper tests: `cd helper && CGO_ENABLED=0 go test ./...`
 
-## Use
+### Development
 
-The host pauses a single-player game and clicks **Share with Tailcat**, then
-copies the `mcl1_...` invitation. The other player opens Multiplayer, clicks
-**Connect with Tailcat**, pastes it, and connects. Opening remote sharing
-publishes the integrated server using Minecraft's normal LAN behavior if it is
-not already published.
+- `./gradlew :mod:runServer --args=nogui` runs a dev server in `mod/run-server/`
+  (accept the EULA in `mod/run-server/eula.txt` first).
+- `./gradlew :mod:runClient` runs a dev client. To join a dev server straight
+  away with an offline account, set `online-mode=false` on the dev server and
+  pass `--args="--username Dev --quickPlayMultiplayer tc..."`.
+- To test singleplayer sharing with two offline clients, launch the host with
+  `TAILCRAFT_DEV_OFFLINE_AUTH=1`. This only works in Fabric's development
+  environment, and the world's original online-mode setting is restored when
+  sharing stops.
+- `TAILCRAFT_HELPER=/path/to/tailcraft-helper` uses a locally built helper
+  (development environment only).
 
-The versioned invitation wraps an ephemeral Tailcat connection token. Possession
-of that unguessable token authorizes access for the lifetime of the sharing
-session. The helper allows only virtual TCP port 25565, binds join listeners
-only to `127.0.0.1`, and caps concurrent streams.
+## Releasing
 
-### Local two-client development
-
-To test with one Minecraft account, launch only the host with the explicitly
-development-only offline-auth switch:
+Push a version tag:
 
 ```sh
-MCLINK_DEV_OFFLINE_AUTH=1 ./gradlew :mod:runClient
+git tag v0.1.0
+git push origin v0.1.0
 ```
 
-Launch the second client from another terminal with an isolated game directory
-and a different offline username:
+GitHub Actions (`.github/workflows/build.yml`) builds the helpers and the jar,
+runs the tests, and publishes a GitHub Release with the jar attached. Every
+push and pull request runs the same build and uploads the jar as a workflow
+artifact.
 
-```sh
-mkdir -p mod/run-client2
-./gradlew :mod:runClient --args='--gameDir ../run-client2 --username Client2'
-```
+The helper binaries are not code-signed.
 
-The switch is ignored outside Fabric's development environment and the server's
-original online-mode setting is restored when Tailcat sharing stops. Never use
-this bypass for real remote sharing.
+## License
 
-## Release checklist
-
-The build is unsigned by default. Public release artifacts must Authenticode-
-sign both Windows executables, sign/notarize the two macOS executables, replace
-the packaged files, regenerate `checksums.json`, generate complete third-party
-notices, and then build the final JAR. Test separate machines and direct/DERP
-paths as listed in the project brief.
-
-Generate the dependency notices from the locked Go module graph (for example,
-with `go-licenses report ./...`). Tailcat and Tailscale are BSD-3-Clause
-licensed; Fabric Loader/API are runtime dependencies rather than embedded mod
-contents, and Minecraft remains subject to Mojang's terms.
+BSD-3-Clause, as in the upstream project. Tailcat and Tailscale are
+BSD-3-Clause licensed. Minecraft is subject to Mojang's terms.
