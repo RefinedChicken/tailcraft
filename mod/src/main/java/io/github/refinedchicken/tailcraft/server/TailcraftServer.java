@@ -64,7 +64,7 @@ public final class TailcraftServer implements DedicatedServerModInitializer {
     }
 
     private static void register(CommandDispatcher<ServerCommandSource> dispatcher, ServerHost host) {
-        dispatcher.register(literal("tailcraft")
+        var tailcraft = dispatcher.register(literal("tailcraft")
                 .requires(source -> source.hasPermissionLevel(4))
                 .then(literal("address").executes(ctx -> {
                     String address = host.address();
@@ -97,6 +97,10 @@ public final class TailcraftServer implements DedicatedServerModInitializer {
                             }));
                             return 1;
                         }))));
+        // /tc is a short alias: it forwards to the same subcommands.
+        dispatcher.register(literal("tc")
+                .requires(source -> source.hasPermissionLevel(4))
+                .redirect(tailcraft));
     }
 
     private static Text addressText(String address) {

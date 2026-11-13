@@ -38,7 +38,8 @@ Things to know:
   keep the address when you move the server.
 - To turn Tailcraft off, set `"enabled": false` in `config/tailcraft.json`.
 
-Commands (op level 4 or the console):
+Commands (op level 4 or the console). `/tc` is a short alias, so
+`/tc address` and `/tc regenerate confirm` work too:
 
 | Command | What it does |
 | --- | --- |
