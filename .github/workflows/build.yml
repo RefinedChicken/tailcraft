@@ -1,7 +1,8 @@
 name: Build
 
-# Every push and pull request builds the helpers and the mod and runs the tests.
-# Pushing a version tag (for example v0.2.0) also publishes a GitHub Release with the jar.
+# Every push and pull request builds the helpers and one mod jar per Minecraft range (mod/versions/)
+# and runs the tests. Pushing a version tag (for example v0.2.0) also publishes one GitHub Release
+# with every range's jar attached.
 on:
   push:
     branches: [main]
@@ -48,16 +49,22 @@ jobs:
           if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
             echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
           else
-            echo "version=$(sed -n 's/^mod_version=//p' gradle.properties)+${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+            echo "version=$(sed -n 's/^mod_version=//p' gradle.properties)-dev.g${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Build and test mod
-        run: ./gradlew :mod:build -Pmod_version=${{ steps.version.outputs.version }}
+      # Jars are named tailcraft-<version>+mc<range>.jar, for example tailcraft-0.2.0+mc1.21.5-1.21.10.jar.
+      - name: Build and test mod for each Minecraft range
+        run: |
+          for target in $(ls mod/versions); do
+            ./gradlew :mod:build -Pminecraft_target="$target" -Pmod_version=${{ steps.version.outputs.version }}
+          done
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: tailcraft-${{ steps.version.outputs.version }}
-          path: mod/build/libs/tailcraft-${{ steps.version.outputs.version }}.jar
+          path: |
+            mod/build/libs/tailcraft-${{ steps.version.outputs.version }}+mc*.jar
+            !mod/build/libs/*-sources.jar
           if-no-files-found: error
 
   release:
@@ -78,5 +85,5 @@ jobs:
         run: |
           gh release create "$GITHUB_REF_NAME" dist/*.jar \
             --repo "$GITHUB_REPOSITORY" \
-            --title "Tailcraft ${GITHUB_REF_NAME#v} (Minecraft 1.21.1)" \
+            --title "Tailcraft ${GITHUB_REF_NAME#v} (Minecraft 1.21.1 to 1.21.11)" \
             --generate-notes

@@ -1,12 +1,20 @@
 # Tailcraft
 
 Play Minecraft with friends without port forwarding and without installing
-Tailscale. Tailcraft is a Fabric mod for Minecraft 1.21.1 that connects
+Tailscale. Tailcraft is a Fabric mod for Minecraft 1.21.1 to 1.21.11 that connects
 players to a server through [Tailcat](https://github.com/tailscale/tailcat):
 userspace WireGuard, direct NAT traversal when possible, and Tailscale's DERP
 relays when not.
 
-The same jar goes on the server and on every player's client.
+The same jar goes on the server and on every player's client. Each release
+has one jar per Minecraft range; pick the one whose name includes your
+version:
+
+| Minecraft | Jar |
+| --- | --- |
+| 1.21.1 to 1.21.4 | `tailcraft-<version>+mc1.21.1-1.21.4.jar` |
+| 1.21.5 to 1.21.10 | `tailcraft-<version>+mc1.21.5-1.21.10.jar` |
+| 1.21.11 | `tailcraft-<version>+mc1.21.11.jar` |
 
 > [!NOTE]
 > Tailcraft is a community fork of Tailscale's
@@ -15,7 +23,7 @@ The same jar goes on the server and on every player's client.
 
 ## Running a server
 
-1. Put `tailcraft-<version>.jar` and [Fabric API](https://modrinth.com/mod/fabric-api)
+1. Put the Tailcraft jar and [Fabric API](https://modrinth.com/mod/fabric-api)
    in the server's `mods/` folder.
 2. Start the server. When it's ready, the console prints a Tailcraft address
    (a long string starting with `tc`). It is also saved in
@@ -92,6 +100,16 @@ verifies the pinned Go toolchain if a matching `go` isn't already on `PATH`.
 ```sh
 scripts/build-natives.sh   # builds the helpers into mod/src/main/resources/assets/tailcraft/native/
 ./gradlew :mod:build       # jar is written to mod/build/libs/
+```
+
+Each folder in `mod/versions/` is one Minecraft range: `version.properties`
+pins its Minecraft, Yarn and Fabric API versions, and `java/` holds the few
+classes whose code differs between ranges (`VersionCompat`). The build uses
+`minecraft_target` from `gradle.properties` (the newest range); pass another
+folder name to build a different jar:
+
+```sh
+./gradlew :mod:build -Pminecraft_target=1.21.1
 ```
 
 Helper tests: `cd helper && CGO_ENABLED=0 go test ./...`

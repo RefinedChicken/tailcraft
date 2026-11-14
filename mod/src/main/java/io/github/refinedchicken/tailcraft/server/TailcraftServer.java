@@ -2,14 +2,13 @@ package io.github.refinedchicken.tailcraft.server;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
+import io.github.refinedchicken.tailcraft.compat.VersionCompat;
 import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.ClickEvent;
-import net.minecraft.text.HoverEvent;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
@@ -66,7 +65,7 @@ public final class TailcraftServer implements DedicatedServerModInitializer {
 
     private static void register(CommandDispatcher<ServerCommandSource> dispatcher, ServerHost host) {
         var tailcraft = dispatcher.register(literal("tailcraft")
-                .requires(source -> source.hasPermissionLevel(4))
+                .requires(VersionCompat.ownersOnly())
                 .executes(TailcraftServer::usage)
                 .then(literal("address").executes(ctx -> {
                     String address = host.address();
@@ -101,7 +100,7 @@ public final class TailcraftServer implements DedicatedServerModInitializer {
                         }))));
         // /tc is a short alias: it forwards to the same subcommands.
         dispatcher.register(literal("tc")
-                .requires(source -> source.hasPermissionLevel(4))
+                .requires(VersionCompat.ownersOnly())
                 .executes(TailcraftServer::usage)
                 .redirect(tailcraft));
     }
@@ -116,9 +115,7 @@ public final class TailcraftServer implements DedicatedServerModInitializer {
     }
 
     private static Text addressText(String address) {
-        return Text.literal(address).styled(style -> style
-                .withUnderline(true)
-                .withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, address))
-                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("Click to copy"))));
+        return Text.literal(address).styled(style -> VersionCompat.copyToClipboard(
+                style.withUnderline(true), address, Text.literal("Click to copy")));
     }
 }

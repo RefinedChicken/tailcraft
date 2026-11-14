@@ -16,7 +16,7 @@
   "mixins": ["tailcraft.mixins.json"],
   "depends": {
     "fabricloader": ">=0.16.10",
-    "minecraft": "~1.21.1",
+    "minecraft": "${minecraft_range}",
     "java": ">=21",
     "fabric-api": "*"
   }
