@@ -105,11 +105,11 @@ scripts/build-natives.sh   # builds the helpers into mod/src/main/resources/asse
 Each folder in `mod/versions/` is one Minecraft range: `version.properties`
 pins its Minecraft, Yarn and Fabric API versions, and `java/` holds the few
 classes whose code differs between ranges (`VersionCompat`). The build uses
-`minecraft_target` from `gradle.properties` (the newest range); pass another
+`minecraft_target` from `gradle.properties` (1.21.1 by default); pass another
 folder name to build a different jar:
 
 ```sh
-./gradlew :mod:build -Pminecraft_target=1.21.1
+./gradlew :mod:build -Pminecraft_target=1.21.11
 ```
 
 Helper tests: `cd helper && CGO_ENABLED=0 go test ./...`
