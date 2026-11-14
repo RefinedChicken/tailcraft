@@ -94,7 +94,8 @@ address never changes.
 
 ## Building
 
-Requirements: JDK 21, `curl`, `tar` and `jq`. The script downloads and
+Requirements: JDK 25 (Loom needs it; the mod itself still runs on Java 21),
+`curl`, `tar` and `jq`. The script downloads and
 verifies the pinned Go toolchain if a matching `go` isn't already on `PATH`.
 
 ```sh
