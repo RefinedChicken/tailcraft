@@ -2,12 +2,11 @@ package io.github.refinedchicken.tailcraft.client;
 
 import io.github.refinedchicken.tailcraft.HelperEvent;
 import io.github.refinedchicken.tailcraft.HelperProcess;
+import io.github.refinedchicken.tailcraft.compat.VersionCompat;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.toast.SystemToast;
 import net.minecraft.server.integrated.IntegratedServer;
-import net.minecraft.text.ClickEvent;
-import net.minecraft.text.HoverEvent;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
@@ -91,10 +90,8 @@ public final class LanHost {
 
     private static void announce(MinecraftClient client, HelperEvent event) {
         String address = event.address();
-        Text copy = Text.translatable("tailcraft.lan.copy").styled(style -> style
-                .withColor(Formatting.GREEN)
-                .withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, address))
-                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.translatable("tailcraft.lan.copy_hover"))));
+        Text copy = Text.translatable("tailcraft.lan.copy").styled(style -> VersionCompat.copyToClipboard(
+                style.withColor(Formatting.GREEN), address, Text.translatable("tailcraft.lan.copy_hover")));
         client.inGameHud.getChatHud().addMessage(Text.translatable("tailcraft.lan.ready", copy));
     }
 
