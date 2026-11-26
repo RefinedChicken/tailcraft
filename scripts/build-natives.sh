@@ -9,6 +9,9 @@ set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 OUT="$ROOT/helper/bin"
 RES="$ROOT/mod/src/main/resources/assets/tailcraft/native"
+# The 26.x build (mod26) is a separate Gradle project with its own resources; it gets the same
+# binaries mirrored into it below.
+RES26="$ROOT/mod26/src/main/resources/assets/tailcraft/native"
 GO_VERSION=go1.27.4
 mkdir -p "$OUT" "$RES"
 
@@ -69,3 +72,8 @@ done
   echo
   echo "}"
 } > "$RES/checksums.json"
+
+# Mirror the identical binaries and checksums into the 26.x build's resources.
+rm -rf "$RES26"
+mkdir -p "$(dirname "$RES26")"
+cp -R "$RES" "$RES26"

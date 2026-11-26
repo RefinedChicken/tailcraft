@@ -1,0 +1,121 @@
+package io.github.refinedchicken.tailcraft.server;
+
+import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.context.CommandContext;
+import io.github.refinedchicken.tailcraft.compat.VersionCompat;
+import net.fabricmc.api.DedicatedServerModInitializer;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.ChatFormatting;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.MinecraftServer;
+
+import java.io.IOException;
+import java.net.Inet6Address;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.nio.file.Path;
+
+import static io.github.refinedchicken.tailcraft.Tailcraft.LOG;
+import static net.minecraft.commands.Commands.literal;
+
+/** Dedicated-server entrypoint: gives the server a permanent Tailcraft address. */
+public final class TailcraftServer implements DedicatedServerModInitializer {
+    @Override
+    public void onInitializeServer() {
+        Path configDir = FabricLoader.getInstance().getConfigDir();
+        ServerConfig config;
+        try {
+            config = ServerConfig.load(configDir.resolve("tailcraft.json"));
+        } catch (IOException e) {
+            LOG.error("Tailcraft is disabled: {}", e.getMessage());
+            return;
+        }
+        if (!config.enabled()) {
+            LOG.info("Tailcraft is disabled in config/tailcraft.json");
+            return;
+        }
+        ServerHost host = new ServerHost(configDir.resolve("tailcraft").resolve("server.key"), config);
+        ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+            try {
+                host.start(target(server));
+            } catch (UnknownHostException e) {
+                LOG.error("Tailcraft could not resolve server-ip {}: {}", server.getLocalIp(), e.getMessage());
+            }
+        });
+        ServerLifecycleEvents.SERVER_STOPPING.register(server -> host.stop());
+        CommandRegistrationCallback.EVENT.register((dispatcher, registries, environment) -> register(dispatcher, host));
+    }
+
+    /**
+     * Where the helper forwards players: loopback unless the admin bound the server to a specific
+     * address with server-ip, in which case that address.
+     */
+    static String target(MinecraftServer server) throws UnknownHostException {
+        String ip = server.getLocalIp();
+        InetAddress address = ip == null || ip.isBlank() ? null : InetAddress.getByName(ip);
+        if (address == null || address.isAnyLocalAddress()) address = InetAddress.getByName("127.0.0.1");
+        String host = address.getHostAddress();
+        int zone = host.indexOf('%');
+        if (zone >= 0) host = host.substring(0, zone);
+        return (address instanceof Inet6Address ? "[" + host + "]" : host) + ":" + server.getPort();
+    }
+
+    private static void register(CommandDispatcher<CommandSourceStack> dispatcher, ServerHost host) {
+        var tailcraft = dispatcher.register(literal("tailcraft")
+                .requires(VersionCompat.ownersOnly())
+                .executes(TailcraftServer::usage)
+                .then(literal("address").executes(ctx -> {
+                    String address = host.address();
+                    if (address == null) {
+                        ctx.getSource().sendFailure(Component.literal("Tailcraft isn't connected right now. Check the server log for the reason."));
+                        return 0;
+                    }
+                    ctx.getSource().sendSuccess(() -> addressText(address), false);
+                    return 1;
+                }))
+                .then(literal("regenerate")
+                        .executes(ctx -> {
+                            ctx.getSource().sendSuccess(() -> Component.literal(
+                                    "This replaces the server's Tailcraft address. The current address stops working and every "
+                                            + "player has to update their saved server. Run /tailcraft regenerate confirm to continue.")
+                                    .withStyle(ChatFormatting.YELLOW), false);
+                            return 1;
+                        })
+                        .then(literal("confirm").executes(ctx -> {
+                            CommandSourceStack source = ctx.getSource();
+                            source.sendSuccess(() -> Component.literal("Creating a new Tailcraft address..."), true);
+                            host.regenerate().whenComplete((address, error) -> source.getServer().execute(() -> {
+                                if (error != null) {
+                                    source.sendFailure(Component.literal("Tailcraft couldn't connect with the new address yet ("
+                                            + error.getMessage() + "). It will keep retrying; check the server log."));
+                                } else {
+                                    source.sendSuccess(() -> Component.literal("New Tailcraft address (the old one no longer works): ")
+                                            .append(addressText(address)), true);
+                                }
+                            }));
+                            return 1;
+                        }))));
+        // /tc is a short alias: it forwards to the same subcommands.
+        dispatcher.register(literal("tc")
+                .requires(VersionCompat.ownersOnly())
+                .executes(TailcraftServer::usage)
+                .redirect(tailcraft));
+    }
+
+    // Bare /tailcraft or /tc: list the subcommands instead of vanilla's "incomplete command" error.
+    private static int usage(CommandContext<CommandSourceStack> ctx) {
+        ctx.getSource().sendSuccess(() -> Component.literal("""
+                Tailcraft commands (/tc works as a short form):
+                  /tailcraft address - show this server's Tailcraft address
+                  /tailcraft regenerate - replace it with a new address"""), false);
+        return 1;
+    }
+
+    private static Component addressText(String address) {
+        return Component.literal(address).withStyle(style -> VersionCompat.copyToClipboard(
+                style.withUnderlined(true), address, Component.literal("Click to copy")));
+    }
+}

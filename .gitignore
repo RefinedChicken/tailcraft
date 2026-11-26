@@ -27,3 +27,4 @@ hs_err_pid*
 
 # Built by scripts/build-natives.sh (CI builds them for releases)
 mod/src/main/resources/assets/tailcraft/native/
+mod26/src/main/resources/assets/tailcraft/native/
