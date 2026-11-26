@@ -6,15 +6,19 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 
 /**
  * Client entrypoint. Joining needs no UI: Tailcraft addresses typed into the normal server
- * address boxes are routed through {@link ClientTunnels} by mixins.
- *
- * <p>Singleplayer "Open to LAN" sharing is not ported to 26.x yet: that screen moved into
- * {@code WorldOptionsScreen} and needs its own mixin. Joining and dedicated-server hosting work.
+ * address boxes are routed through {@link ClientTunnels} by mixins. Hosting a singleplayer world
+ * lives in the World Options screen ({@link LanHost}).
  */
 public final class TailcraftClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
-        ClientTickEvents.END_CLIENT_TICK.register(ClientTunnels.INSTANCE::tick);
-        ClientLifecycleEvents.CLIENT_STOPPING.register(client -> ClientTunnels.INSTANCE.close());
+        ClientTickEvents.END_CLIENT_TICK.register(client -> {
+            LanHost.INSTANCE.tick(client);
+            ClientTunnels.INSTANCE.tick(client);
+        });
+        ClientLifecycleEvents.CLIENT_STOPPING.register(client -> {
+            LanHost.INSTANCE.stop();
+            ClientTunnels.INSTANCE.close();
+        });
     }
 }

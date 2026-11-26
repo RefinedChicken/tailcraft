@@ -5,5 +5,7 @@
   "tailcraft.lan.copy": "[Copy]",
   "tailcraft.lan.copy_hover": "Copy the Tailcraft address. Anyone with it can join this world while it's open.",
   "tailcraft.lan.failed": "Tailcraft sharing failed",
-  "tailcraft.connect.failed": "Tailcraft connection failed"
+  "tailcraft.connect.failed": "Tailcraft connection failed",
+  "tailcraft.lan.new_address": "New Address",
+  "tailcraft.lan.new_address_tooltip": "Make a new Tailcraft address and stop the old one. Only works while sharing."
 }

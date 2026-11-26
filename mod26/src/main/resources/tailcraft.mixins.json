@@ -5,7 +5,10 @@
   "client": [
     "AddressFieldLengthMixin",
     "ServerAddressMixin",
-    "TailcraftResolveMixin"
+    "TailcraftResolveMixin",
+    "WorldOptionsScreenMixin"
   ],
-  "injectors": { "defaultRequire": 1 }
+  "injectors": {
+    "defaultRequire": 1
+  }
 }
