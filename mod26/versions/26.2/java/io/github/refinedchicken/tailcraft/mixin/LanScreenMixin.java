@@ -20,9 +20,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
  * Adds a Tailcraft row to the Multiplayer Options screen (26.2's replacement for the Open to LAN
- * screen): a "Tailcraft: ON/OFF" toggle and a "New Address" button that is grayed until the toggle
- * is on. It goes under the game mode and commands row. The toggle works even when LAN is off;
- * turning it on publishes the world to LAN when the user clicks Apply Changes.
+ * screen), under the game mode and commands row: a "Tailcraft: ON/OFF" toggle and a "New Address"
+ * button that is grayed until the toggle is on. Like the other controls, both take effect on Apply
+ * Changes, and Cancel discards them. The toggle works even when LAN is off; turning it on publishes
+ * the world to LAN on Apply Changes.
  */
 @Mixin(MultiplayerOptionsScreen.class)
 abstract class LanScreenMixin {
@@ -33,6 +34,8 @@ abstract class LanScreenMixin {
     @Unique private Button tailcraft$generate;
     @Unique private boolean tailcraft$share;
     @Unique private boolean tailcraft$initialShare;
+    /** New Address was clicked; the address is replaced on Apply Changes, kept on Cancel. */
+    @Unique private boolean tailcraft$newAddress;
 
     // Right before the footer is built, all rows of the content layout (ordinal 0) exist.
     @Inject(method = "init", at = @At(value = "INVOKE",
@@ -48,7 +51,11 @@ abstract class LanScreenMixin {
                     updateApplyChangesActiveState();
                 });
         tailcraft$generate = Button.builder(Component.translatable("tailcraft.lan.new_address"),
-                        button -> LanHost.INSTANCE.regenerate())
+                        button -> {
+                            tailcraft$newAddress = true;
+                            tailcraft$updateGenerate();
+                            updateApplyChangesActiveState();
+                        })
                 .size(150, 20)
                 .tooltip(Tooltip.create(Component.translatable("tailcraft.lan.new_address_tooltip")))
                 .build();
@@ -59,10 +66,11 @@ abstract class LanScreenMixin {
         tailcraft$updateGenerate();
     }
 
-    // Count a Tailcraft toggle as a pending change, so Apply Changes un-grays like the other controls.
+    // Count a Tailcraft toggle or a New Address click as a pending change, so Apply Changes un-grays
+    // like it does for the other controls.
     @Inject(method = "hasSettingsChanges", at = @At("RETURN"), cancellable = true)
     private void tailcraft$hasChanges(CallbackInfoReturnable<Boolean> cir) {
-        if (tailcraft$share != tailcraft$initialShare) cir.setReturnValue(true);
+        if (tailcraft$share != tailcraft$initialShare || tailcraft$newAddress) cir.setReturnValue(true);
     }
 
     // The Apply Changes button's handler. Tailcraft needs the world published to LAN; turning it on
@@ -77,17 +85,21 @@ abstract class LanScreenMixin {
     @Inject(method = "lambda$init$2", at = @At("TAIL"))
     private void tailcraft$apply(IntegratedServer server, Button button, CallbackInfo ci) {
         if (tailcraft$share && server.isPublished()) {
+            // New Address: drop the current helper so share() starts one with a fresh address.
+            if (tailcraft$newAddress) LanHost.INSTANCE.stop();
             LanHost.INSTANCE.share(server);
         } else {
             LanHost.INSTANCE.stop();
         }
         tailcraft$initialShare = tailcraft$share;
+        tailcraft$newAddress = false;
+        tailcraft$updateGenerate();
     }
 
     @Unique
     private void tailcraft$updateGenerate() {
         if (tailcraft$generate != null) {
-            tailcraft$generate.active = tailcraft$share;
+            tailcraft$generate.active = tailcraft$share && !tailcraft$newAddress;
         }
     }
 }

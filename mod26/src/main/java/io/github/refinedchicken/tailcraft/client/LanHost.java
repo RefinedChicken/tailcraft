@@ -18,8 +18,9 @@ import static io.github.refinedchicken.tailcraft.Tailcraft.LOG;
 /**
  * Shares a singleplayer world that is open to LAN with a temporary Tailcraft address. Each range's
  * LanScreenMixin drives this: {@code share} when the world is published with the Tailcraft toggle
- * on, {@code stop} otherwise (26.2+), {@code regenerate} for a fresh address (26.2+). A new address is made each
- * time, like vanilla's random LAN port, and it dies with the world.
+ * on, {@code stop} otherwise (26.2+). A fresh address (New Address, 26.2+) is {@code stop} then
+ * {@code share}. A new address is made each time, like vanilla's random LAN port, and it dies
+ * with the world.
  */
 public final class LanHost {
     public static final LanHost INSTANCE = new LanHost();
@@ -37,14 +38,6 @@ public final class LanHost {
     /** Starts sharing the given published integrated server, unless it is already being shared. */
     public synchronized void share(IntegratedServer server) {
         if (session != null && session.server == server) return;
-        stop();
-        start(server);
-    }
-
-    /** Replaces the current address with a new one. No-op when not sharing. */
-    public synchronized void regenerate() {
-        if (session == null) return;
-        IntegratedServer server = session.server;
         stop();
         start(server);
     }
