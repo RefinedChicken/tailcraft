@@ -7,5 +7,5 @@
   "tailcraft.lan.failed": "Tailcraft sharing failed",
   "tailcraft.connect.failed": "Tailcraft connection failed",
   "tailcraft.lan.new_address": "New Address",
-  "tailcraft.lan.new_address_tooltip": "Make a new Tailcraft address and stop the old one. Only works while sharing."
+  "tailcraft.lan.new_address_tooltip": "Replace the Tailcraft address with a new one when you click Apply Changes. The old address stops working then."
 }

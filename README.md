@@ -95,7 +95,8 @@ On Minecraft 26.2 and 26.3:
 2. Switch **Tailcraft** to **ON**, then click **Apply Changes**. LAN turns on
    by itself.
 3. Click **[Copy]** in the chat message and send the address to your friends.
-   **New Address** on the same screen replaces it.
+   To replace it, click **New Address** on the same screen, then **Apply
+   Changes**. Cancel keeps the current address.
 
 Each time a world is shared this way, it gets a new temporary address. The
 address stops working when you close the world.
