@@ -14,14 +14,15 @@ import java.util.Optional;
 
 /**
  * Both joining (ConnectScreen) and server-list pings (ServerStatusPinger) resolve addresses here,
- * off the render thread. Tailcraft addresses resolve to a local tunnel. In 26.x ServerAddress
- * exposes the raw host directly, so the separate accessor mixin the 1.21.x build needed is gone.
+ * off the render thread. Tailcraft addresses resolve to a local tunnel. The raw host is read via
+ * {@link ServerAddressAccessor} because {@code ServerAddress.getHost()} IDN-encodes and returns ""
+ * for Tailcraft addresses.
  */
 @Mixin(ServerNameResolver.class)
 abstract class TailcraftResolveMixin {
     @Inject(method = "resolveAddress", at = @At("HEAD"), cancellable = true)
     private void tailcraft$resolveThroughTunnel(ServerAddress address, CallbackInfoReturnable<Optional<ResolvedServerAddress>> cir) {
-        String host = address.getHost();
+        String host = ((ServerAddressAccessor) (Object) address).tailcraft$getHostAndPort().getHost();
         if (TailcraftAddress.isAddress(host)) {
             cir.setReturnValue(ClientTunnels.INSTANCE.resolve(host.trim()).map(ResolvedServerAddress::from));
         }

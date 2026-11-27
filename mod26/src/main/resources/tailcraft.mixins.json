@@ -5,6 +5,7 @@
   "client": [
     "AddressFieldLengthMixin",
     "ServerAddressMixin",
+    "ServerAddressAccessor",
     "TailcraftResolveMixin",
     "WorldOptionsScreenMixin"
   ],
