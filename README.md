@@ -1,5 +1,13 @@
 # Tailcraft
 
+> [!WARNING]
+> ALL code written/modified since forking this project is 100% AI generated.
+> This is a hobby project, and I am not a developer of any sort!
+> It is not an official product, and has had no security audit.
+> This mod runs bundled executable files on your system that may flag anti-virus!
+> Use at your own risk: keep servers on online-mode to avoid username spoofing,
+> and don't run it anywhere the above is a dealbreaker.
+
 Play Minecraft with friends without port forwarding and without installing
 Tailscale. Tailcraft is a Fabric mod for Minecraft 1.21.1 to 1.21.11 and 26.3 that
 connects players to a server through [Tailcat](https://github.com/tailscale/tailcat):
