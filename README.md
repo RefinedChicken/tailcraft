@@ -9,7 +9,7 @@
 > and don't run it anywhere the above is a dealbreaker.
 
 Play Minecraft with friends without port forwarding and without installing
-Tailscale. Tailcraft is a Fabric mod for Minecraft 1.21.1 to 1.21.11 and 26.3 that
+Tailscale. Tailcraft is a Fabric mod for Minecraft 1.20 to 1.21.11 and 26.3 that
 connects players to a server through [Tailcat](https://github.com/tailscale/tailcat):
 userspace WireGuard, direct NAT traversal when possible, and Tailscale's DERP
 relays when not.
@@ -20,7 +20,8 @@ version:
 
 | Minecraft | Jar |
 | --- | --- |
-| 1.21.1 to 1.21.4 | `tailcraft-<version>+mc1.21.1-1.21.4.jar` |
+| 1.20 to 1.20.2 | `tailcraft-<version>+mc1.20-1.20.2.jar` |
+| 1.20.3 to 1.21.4 | `tailcraft-<version>+mc1.20.3-1.21.4.jar` |
 | 1.21.5 to 1.21.10 | `tailcraft-<version>+mc1.21.5-1.21.10.jar` |
 | 1.21.11 | `tailcraft-<version>+mc1.21.11.jar` |
 | 26.3 | `tailcraft-<version>+mc26.3.jar` |
@@ -103,8 +104,8 @@ address never changes.
 
 ## Building
 
-Requirements: JDK 25 (Loom needs it; the mod itself still runs on Java 21),
-`curl`, `tar` and `jq`. The script downloads and
+Requirements: JDK 25 (Loom needs it; the 1.x jars themselves run on Java 17,
+which Minecraft 1.20 to 1.20.4 use), `curl`, `tar` and `jq`. The script downloads and
 verifies the pinned Go toolchain if a matching `go` isn't already on `PATH`.
 
 ```sh
@@ -114,8 +115,9 @@ scripts/build-natives.sh   # builds the helpers into mod/src/main/resources/asse
 
 Each folder in `mod/versions/` is one Minecraft range: `version.properties`
 pins its Minecraft, Yarn and Fabric API versions, and `java/` holds the few
-classes whose code differs between ranges (`VersionCompat`). The build uses
-`minecraft_target` from `gradle.properties` (1.21.1 by default); pass another
+classes whose code differs between ranges (`VersionCompat`). A class in `java/`
+replaces the shared class at the same path in `mod/src/main/java`. The build uses
+`minecraft_target` from `gradle.properties` (1.20.3 by default); pass another
 folder name to build a different jar:
 
 ```sh

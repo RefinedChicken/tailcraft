@@ -96,5 +96,5 @@ jobs:
           [[ ${#jars[@]} -gt 0 ]] || { echo "no jars found under dist/" >&2; exit 1; }
           gh release create "$GITHUB_REF_NAME" "${jars[@]}" \
             --repo "$GITHUB_REPOSITORY" \
-            --title "Tailcraft ${GITHUB_REF_NAME#v} (Minecraft 1.21.1 to 1.21.11 and 26.3)" \
+            --title "Tailcraft ${GITHUB_REF_NAME#v} (Minecraft 1.20 to 1.21.11 and 26.3)" \
             --generate-notes

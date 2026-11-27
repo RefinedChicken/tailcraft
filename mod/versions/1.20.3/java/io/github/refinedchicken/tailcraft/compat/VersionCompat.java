@@ -10,7 +10,7 @@ import java.util.function.Predicate;
 
 /**
  * Minecraft APIs that differ between the supported version ranges. Every folder under
- * mod/versions/ has its own copy of this class with the same methods; this one is for 1.21.1 to 1.21.4.
+ * mod/versions/ has its own copy of this class with the same methods; this one is for 1.20.3 to 1.21.4.
  */
 public final class VersionCompat {
     private VersionCompat() {}
