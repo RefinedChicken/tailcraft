@@ -7,6 +7,7 @@ import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 /**
  * Minecraft APIs that differ between the supported version ranges. Every folder under
@@ -24,5 +25,10 @@ public final class VersionCompat {
     /** Command requirement for server owners (permission level 4) and the console. */
     public static Predicate<ServerCommandSource> ownersOnly() {
         return source -> source.hasPermissionLevel(4);
+    }
+
+    /** Sends command feedback. Vanilla takes a Supplier from 1.20 and the Text itself before that. */
+    public static void sendFeedback(ServerCommandSource source, Supplier<Text> text, boolean broadcast) {
+        source.sendFeedback(text, broadcast);
     }
 }

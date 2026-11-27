@@ -73,12 +73,12 @@ public final class TailcraftServer implements DedicatedServerModInitializer {
                         ctx.getSource().sendError(Text.literal("Tailcraft isn't connected right now. Check the server log for the reason."));
                         return 0;
                     }
-                    ctx.getSource().sendFeedback(() -> addressText(address), false);
+                    VersionCompat.sendFeedback(ctx.getSource(), () -> addressText(address), false);
                     return 1;
                 }))
                 .then(literal("regenerate")
                         .executes(ctx -> {
-                            ctx.getSource().sendFeedback(() -> Text.literal(
+                            VersionCompat.sendFeedback(ctx.getSource(), () -> Text.literal(
                                     "This replaces the server's Tailcraft address. The current address stops working and every "
                                             + "player has to update their saved server. Run /tailcraft regenerate confirm to continue.")
                                     .formatted(Formatting.YELLOW), false);
@@ -86,13 +86,13 @@ public final class TailcraftServer implements DedicatedServerModInitializer {
                         })
                         .then(literal("confirm").executes(ctx -> {
                             ServerCommandSource source = ctx.getSource();
-                            source.sendFeedback(() -> Text.literal("Creating a new Tailcraft address..."), true);
+                            VersionCompat.sendFeedback(source, () -> Text.literal("Creating a new Tailcraft address..."), true);
                             host.regenerate().whenComplete((address, error) -> source.getServer().execute(() -> {
                                 if (error != null) {
                                     source.sendError(Text.literal("Tailcraft couldn't connect with the new address yet ("
                                             + error.getMessage() + "). It will keep retrying; check the server log."));
                                 } else {
-                                    source.sendFeedback(() -> Text.literal("New Tailcraft address (the old one no longer works): ")
+                                    VersionCompat.sendFeedback(source, () -> Text.literal("New Tailcraft address (the old one no longer works): ")
                                             .append(addressText(address)), true);
                                 }
                             }));
@@ -107,7 +107,7 @@ public final class TailcraftServer implements DedicatedServerModInitializer {
 
     // Bare /tailcraft or /tc: list the subcommands instead of vanilla's "incomplete command" error.
     private static int usage(CommandContext<ServerCommandSource> ctx) {
-        ctx.getSource().sendFeedback(() -> Text.literal("""
+        VersionCompat.sendFeedback(ctx.getSource(), () -> Text.literal("""
                 Tailcraft commands (/tc works as a short form):
                   /tailcraft address - show this server's Tailcraft address
                   /tailcraft regenerate - replace it with a new address"""), false);
