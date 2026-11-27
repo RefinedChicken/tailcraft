@@ -59,10 +59,13 @@ jobs:
             ./gradlew :mod:build -Pminecraft_target="$target" -Pmod_version=${{ steps.version.outputs.version }}
           done
 
-      # 26.x is a separate build (unobfuscated Loom, Mojang mappings); build-natives.sh already
-      # mirrored the helpers into it.
-      - name: Build and test the 26.x mod
-        run: ./gradlew -p mod26 build -Pmod_version=${{ steps.version.outputs.version }}
+      # 26.x is a separate build (unobfuscated Loom, Mojang mappings), also one jar per range
+      # (mod26/versions/); build-natives.sh already mirrored the helpers into it.
+      - name: Build and test the 26.x mod for each Minecraft range
+        run: |
+          for target in $(ls mod26/versions); do
+            ./gradlew -p mod26 build -Pminecraft_target="$target" -Pmod_version=${{ steps.version.outputs.version }}
+          done
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -96,5 +99,5 @@ jobs:
           [[ ${#jars[@]} -gt 0 ]] || { echo "no jars found under dist/" >&2; exit 1; }
           gh release create "$GITHUB_REF_NAME" "${jars[@]}" \
             --repo "$GITHUB_REPOSITORY" \
-            --title "Tailcraft ${GITHUB_REF_NAME#v} (Minecraft 1.19 to 1.21.11 and 26.3)" \
+            --title "Tailcraft ${GITHUB_REF_NAME#v} (Minecraft 1.19 to 1.21.11 and 26.1 to 26.3)" \
             --generate-notes

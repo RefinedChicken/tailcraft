@@ -2,6 +2,7 @@ package io.github.refinedchicken.tailcraft.client;
 
 import io.github.refinedchicken.tailcraft.HelperEvent;
 import io.github.refinedchicken.tailcraft.HelperProcess;
+import io.github.refinedchicken.tailcraft.compat.VersionCompat;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.gui.components.toasts.SystemToast;
@@ -101,7 +102,7 @@ public final class ClientTunnels {
     private static void reportFailure(String reason) {
         LOG.warn("Tailcraft connection failed: {}", reason);
         Minecraft client = Minecraft.getInstance();
-        client.execute(() -> SystemToast.add(client.gui.toastManager(), SystemToast.SystemToastId.PERIODIC_NOTIFICATION,
+        client.execute(() -> SystemToast.add(VersionCompat.toastManager(client), SystemToast.SystemToastId.PERIODIC_NOTIFICATION,
                 Component.translatable("tailcraft.connect.failed"), Component.literal(reason)));
     }
 

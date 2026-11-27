@@ -9,7 +9,7 @@
 > and don't run it anywhere the above is a dealbreaker.
 
 Play Minecraft with friends without port forwarding and without installing
-Tailscale. Tailcraft is a Fabric mod for Minecraft 1.19 to 1.21.11 and 26.3 that
+Tailscale. Tailcraft is a Fabric mod for Minecraft 1.19 to 1.21.11 and 26.1 to 26.3 that
 connects players to a server through [Tailcat](https://github.com/tailscale/tailcat):
 userspace WireGuard, direct NAT traversal when possible, and Tailscale's DERP
 relays when not.
@@ -27,6 +27,8 @@ version:
 | 1.20.3 to 1.21.4 | `tailcraft-<version>+mc1.20.3-1.21.4.jar` |
 | 1.21.5 to 1.21.10 | `tailcraft-<version>+mc1.21.5-1.21.10.jar` |
 | 1.21.11 | `tailcraft-<version>+mc1.21.11.jar` |
+| 26.1 to 26.1.2 | `tailcraft-<version>+mc26.1-26.1.2.jar` |
+| 26.2 | `tailcraft-<version>+mc26.2.jar` |
 | 26.3 | `tailcraft-<version>+mc26.3.jar` |
 
 > [!NOTE]
@@ -81,11 +83,21 @@ other server.
 
 ## Sharing a singleplayer world
 
+On Minecraft 1.19 to 1.21.11 and 26.1:
+
 1. Pause, then click **Open to LAN**.
 2. Switch **Tailcraft** to **ON**, then click **Start LAN World**.
 3. Click **[Copy]** in the chat message and send the address to your friends.
 
-Each time a world is opened this way, it gets a new temporary address. The
+On Minecraft 26.2 and 26.3:
+
+1. Pause, then click **Open to LAN** (26.2) or **World Options...** (26.3).
+2. Switch **Tailcraft** to **ON**, then click **Apply Changes**. LAN turns on
+   by itself.
+3. Click **[Copy]** in the chat message and send the address to your friends.
+   **New Address** on the same screen replaces it.
+
+Each time a world is shared this way, it gets a new temporary address. The
 address stops working when you close the world.
 
 ## How it works
@@ -129,10 +141,12 @@ folder name to build a different jar:
 
 Minecraft 26.x is unobfuscated and uses Mojang's mappings and a different Loom
 plugin, so it can't share the build above. It lives in its own Gradle project,
-`mod26/`, built separately (needs JDK 25):
+`mod26/`, built separately (needs JDK 25). It has the same `versions/` layout,
+one folder per range (26.3 by default):
 
 ```sh
-./gradlew -p mod26 build    # jar is written to mod26/build/libs/
+./gradlew -p mod26 build                            # jar is written to mod26/build/libs/
+./gradlew -p mod26 build -Pminecraft_target=26.1    # another range
 ```
 
 Helper tests: `cd helper && CGO_ENABLED=0 go test ./...`

@@ -1,5 +1,7 @@
 package io.github.refinedchicken.tailcraft.compat;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.components.toasts.ToastManager;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.ClickEvent;
@@ -9,7 +11,10 @@ import net.minecraft.network.chat.Style;
 
 import java.util.function.Predicate;
 
-/** Minecraft APIs that read differently across versions, isolated here as in the 1.21.x build. */
+/**
+ * Minecraft APIs that differ between the supported 26.x ranges. Every folder under mod26/versions/
+ * has its own copy of this class with the same methods; this one is for 26.3.
+ */
 public final class VersionCompat {
     private VersionCompat() {}
 
@@ -22,5 +27,10 @@ public final class VersionCompat {
     /** Command requirement for server owners (permission level 4) and the console. */
     public static Predicate<CommandSourceStack> ownersOnly() {
         return Commands.hasPermission(Commands.LEVEL_OWNERS);
+    }
+
+    /** The client's toast manager (on Gui from 26.2, on Minecraft before). */
+    public static ToastManager toastManager(Minecraft client) {
+        return client.gui.toastManager();
     }
 }

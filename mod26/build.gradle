@@ -1,23 +1,36 @@
 plugins { id 'net.fabricmc.fabric-loom' version '1.19.4' }
 
-version = "${project.mod_version}+mc26.3"
+// One jar per Minecraft range, as in the 1.x build: each folder in versions/ holds a range's
+// dependency versions (version.properties) and the classes that differ between ranges (java/).
+// Pick one with -Pminecraft_target=<folder>; gradle.properties sets the default.
+def target = project.minecraft_target
+def targetDir = file("versions/$target")
+if (!targetDir.isDirectory()) {
+    throw new GradleException("Unknown minecraft_target '$target'. Choose one of: ${file('versions').list().sort().join(', ')}")
+}
+def mc = new Properties()
+file("$targetDir/version.properties").withInputStream { mc.load(it) }
+
+version = "${project.mod_version}+mc${mc.range_label}"
 group = project.maven_group
 
 base { archivesName = project.archives_base_name }
 
+sourceSets.main.java.srcDir("$targetDir/java")
+
 repositories { mavenCentral() }
 
 dependencies {
-    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    minecraft "com.mojang:minecraft:${mc.minecraft_version}"
     // 26.x is unobfuscated: plain implementation, not modImplementation, and no mappings.
     implementation "net.fabricmc:fabric-loader:${project.loader_version}"
-    implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${mc.fabric_version}"
     testImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 processResources {
-    def expansions = [version: project.version, minecraft_range: project.minecraft_range]
+    def expansions = [version: project.version, minecraft_range: mc.minecraft_range]
     inputs.properties expansions
     filesMatching('fabric.mod.json') { expand expansions }
 }
