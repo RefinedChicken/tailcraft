@@ -1,8 +1,8 @@
 name: Build
 
-# Every push and pull request builds the helpers and one mod jar per Minecraft range (mod/versions/)
-# and runs the tests. Pushing a version tag (for example v0.2.0) also publishes one GitHub Release
-# with every range's jar attached.
+# Every push and pull request builds the helpers, one 1.21.x mod jar per Minecraft range
+# (mod/versions/) and the separate 26.x jar (mod26/), and runs the tests. Pushing a version tag
+# (for example v0.2.0) also publishes one GitHub Release with every jar attached.
 on:
   push:
     branches: [main]
@@ -59,12 +59,19 @@ jobs:
             ./gradlew :mod:build -Pminecraft_target="$target" -Pmod_version=${{ steps.version.outputs.version }}
           done
 
+      # 26.x is a separate build (unobfuscated Loom, Mojang mappings); build-natives.sh already
+      # mirrored the helpers into it.
+      - name: Build and test the 26.x mod
+        run: ./gradlew -p mod26 build -Pmod_version=${{ steps.version.outputs.version }}
+
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: tailcraft-${{ steps.version.outputs.version }}
           path: |
             mod/build/libs/tailcraft-${{ steps.version.outputs.version }}+mc*.jar
+            mod26/build/libs/tailcraft-${{ steps.version.outputs.version }}+mc*.jar
             !mod/build/libs/*-sources.jar
+            !mod26/build/libs/*-sources.jar
           if-no-files-found: error
 
   release:
@@ -85,5 +92,5 @@ jobs:
         run: |
           gh release create "$GITHUB_REF_NAME" dist/*.jar \
             --repo "$GITHUB_REPOSITORY" \
-            --title "Tailcraft ${GITHUB_REF_NAME#v} (Minecraft 1.21.1 to 1.21.11)" \
+            --title "Tailcraft ${GITHUB_REF_NAME#v} (Minecraft 1.21.1 to 1.21.11 and 26.3)" \
             --generate-notes

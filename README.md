@@ -1,8 +1,8 @@
 # Tailcraft
 
 Play Minecraft with friends without port forwarding and without installing
-Tailscale. Tailcraft is a Fabric mod for Minecraft 1.21.1 to 1.21.11 that connects
-players to a server through [Tailcat](https://github.com/tailscale/tailcat):
+Tailscale. Tailcraft is a Fabric mod for Minecraft 1.21.1 to 1.21.11 and 26.3 that
+connects players to a server through [Tailcat](https://github.com/tailscale/tailcat):
 userspace WireGuard, direct NAT traversal when possible, and Tailscale's DERP
 relays when not.
 
@@ -15,6 +15,7 @@ version:
 | 1.21.1 to 1.21.4 | `tailcraft-<version>+mc1.21.1-1.21.4.jar` |
 | 1.21.5 to 1.21.10 | `tailcraft-<version>+mc1.21.5-1.21.10.jar` |
 | 1.21.11 | `tailcraft-<version>+mc1.21.11.jar` |
+| 26.3 | `tailcraft-<version>+mc26.3.jar` |
 
 > [!NOTE]
 > Tailcraft is a community fork of Tailscale's
@@ -111,6 +112,14 @@ folder name to build a different jar:
 
 ```sh
 ./gradlew :mod:build -Pminecraft_target=1.21.11
+```
+
+Minecraft 26.x is unobfuscated and uses Mojang's mappings and a different Loom
+plugin, so it can't share the build above. It lives in its own Gradle project,
+`mod26/`, built separately (needs JDK 25):
+
+```sh
+./gradlew -p mod26 build    # jar is written to mod26/build/libs/
 ```
 
 Helper tests: `cd helper && CGO_ENABLED=0 go test ./...`

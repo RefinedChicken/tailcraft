@@ -1,0 +1,11 @@
+// Standalone build for the Minecraft 26.x jar. Kept separate from the root build because 26.x uses
+// the new unobfuscated net.fabricmc.fabric-loom plugin and Mojang mappings, which cannot share a
+// Gradle project with the 1.21.x fabric-loom-remap build. Build it with: ./gradlew -p mod26 build
+pluginManagement {
+    repositories {
+        maven { url = 'https://maven.fabricmc.net/' }
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+rootProject.name = 'tailcraft-26'
