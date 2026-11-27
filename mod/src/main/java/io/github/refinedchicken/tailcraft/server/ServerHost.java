@@ -27,8 +27,11 @@ final class ServerHost {
 
     private final Path keyFile;
     private final ServerConfig config;
-    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(
-            Thread.ofPlatform().daemon().name("tailcraft-server").factory());
+    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(task -> {
+        Thread thread = new Thread(task, "tailcraft-server");
+        thread.setDaemon(true);
+        return thread;
+    });
 
     private String target;
     private HelperProcess process;

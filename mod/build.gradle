@@ -16,7 +16,14 @@ group = project.maven_group
 
 base { archivesName = project.archives_base_name }
 
-sourceSets.main.java.srcDir("$targetDir/java")
+// A class in the range's java/ folder replaces the shared class at the same path in src/main/java.
+def rangeJava = file("$targetDir/java")
+def sharedJava = file("src/main/java")
+def overridden = fileTree(rangeJava).collect { rangeJava.toPath().relativize(it.toPath()).toString().replace(File.separator, "/") } as Set
+sourceSets.main.java {
+    srcDir rangeJava
+    exclude { it.file.toPath().startsWith(sharedJava.toPath()) && overridden.contains(it.relativePath.pathString) }
+}
 
 repositories { mavenCentral() }
 
@@ -35,8 +42,9 @@ processResources {
     filesMatching('fabric.mod.json') { expand expansions }
 }
 
-tasks.withType(JavaCompile).configureEach { options.release = 21 }
-java { withSourcesJar(); sourceCompatibility = JavaVersion.VERSION_21; targetCompatibility = JavaVersion.VERSION_21 }
+// Java 17: Minecraft 1.20.4 and older run on it.
+tasks.withType(JavaCompile).configureEach { options.release = 17 }
+java { withSourcesJar(); sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
 test { useJUnitPlatform() }
 tasks.named('sourcesJar') { exclude 'assets/tailcraft/native/**' }
 

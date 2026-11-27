@@ -26,12 +26,20 @@ public final class LanHost {
 
     /** Set by the Open to LAN screen's toggle; consumed by the next successful openToLan. */
     private boolean shareOnOpen;
+    /** The screen was left; clear shareOnOpen at the next tick, after any openToLan it triggered. */
+    private boolean disarmOnTick;
     private Session session;
 
     private LanHost() {}
 
     public synchronized void setShareOnOpen(boolean share) {
         shareOnOpen = share;
+        disarmOnTick = false;
+    }
+
+    /** Called when the Open to LAN screen is left, whether by Start, Cancel or Escape. */
+    public synchronized void disarmAtNextTick() {
+        disarmOnTick = true;
     }
 
     /** Called right after the integrated server is published to LAN on {@code port}. */
@@ -65,6 +73,10 @@ public final class LanHost {
     }
 
     public synchronized void tick(MinecraftClient client) {
+        if (disarmOnTick) {
+            disarmOnTick = false;
+            shareOnOpen = false;
+        }
         if (session == null) return;
         IntegratedServer server = client.getServer();
         if (!session.process.isAlive() || server != session.server || !server.isRunning()) stop();

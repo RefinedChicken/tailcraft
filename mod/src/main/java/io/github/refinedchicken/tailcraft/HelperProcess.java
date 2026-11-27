@@ -24,8 +24,8 @@ public final class HelperProcess implements AutoCloseable {
 
     private HelperProcess(Process process, Consumer<HelperEvent> events) {
         this.process = process;
-        Thread.ofVirtual().name("tailcraft-helper-stdout").start(() -> readStdout(events));
-        Thread.ofVirtual().name("tailcraft-helper-stderr").start(this::drainStderr);
+        startDaemon("tailcraft-helper-stdout", () -> readStdout(events));
+        startDaemon("tailcraft-helper-stderr", this::drainStderr);
         process.onExit().thenAccept(p -> {
             if (!closing.get()) {
                 IOException failure = new IOException("helper exited unexpectedly (status " + p.exitValue() + ")");
@@ -103,5 +103,12 @@ public final class HelperProcess implements AutoCloseable {
             process.destroyForcibly();
             LOG.warn("Could not close helper stdin", e);
         }
+    }
+
+    // Plain daemon threads: virtual threads need Java 21, and Minecraft 1.20.4 and older run on Java 17.
+    private static void startDaemon(String name, Runnable task) {
+        Thread thread = new Thread(task, name);
+        thread.setDaemon(true);
+        thread.start();
     }
 }
