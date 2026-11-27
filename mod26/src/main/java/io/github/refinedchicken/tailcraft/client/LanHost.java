@@ -16,9 +16,9 @@ import java.util.List;
 import static io.github.refinedchicken.tailcraft.Tailcraft.LOG;
 
 /**
- * Shares a singleplayer world that is open to LAN with a temporary Tailcraft address. The World
- * Options screen drives this: {@code share} when the world is published with the Tailcraft toggle
- * on, {@code stop} otherwise, {@code regenerate} for a fresh address. A new address is made each
+ * Shares a singleplayer world that is open to LAN with a temporary Tailcraft address. Each range's
+ * LanScreenMixin drives this: {@code share} when the world is published with the Tailcraft toggle
+ * on, {@code stop} otherwise (26.2+), {@code regenerate} for a fresh address (26.2+). A new address is made each
  * time, like vanilla's random LAN port, and it dies with the world.
  */
 public final class LanHost {
@@ -110,7 +110,7 @@ public final class LanHost {
 
     private static void showFailure(Minecraft client, String reason) {
         LOG.warn("Tailcraft sharing failed: {}", reason);
-        client.execute(() -> SystemToast.add(client.gui.toastManager(), SystemToast.SystemToastId.PERIODIC_NOTIFICATION,
+        client.execute(() -> SystemToast.add(VersionCompat.toastManager(client), SystemToast.SystemToastId.PERIODIC_NOTIFICATION,
                 Component.translatable("tailcraft.lan.failed"), Component.literal(String.valueOf(reason))));
     }
 

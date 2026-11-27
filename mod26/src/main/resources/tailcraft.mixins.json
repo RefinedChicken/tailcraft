@@ -7,7 +7,7 @@
     "ServerAddressMixin",
     "ServerAddressAccessor",
     "TailcraftResolveMixin",
-    "WorldOptionsScreenMixin"
+    "LanScreenMixin"
   ],
   "injectors": {
     "defaultRequire": 1
